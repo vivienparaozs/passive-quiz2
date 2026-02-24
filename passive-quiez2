@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Passive Voice – Feleletválasztós teszt (50)</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    body { margin: 0; background: #f6f7fb; color: #111; }
+    header { padding: 18px 16px; background: #111; color: #fff; }
+    header h1 { margin: 0; font-size: 18px; font-weight: 800; }
+    header p { margin: 6px 0 0; opacity: .85; font-size: 13px; max-width: 980px; }
+    main { max-width: 980px; margin: 0 auto; padding: 16px; }
+    .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 12px 0 16px; }
+    button{
+      border: 0; padding: 10px 12px; border-radius: 10px; cursor: pointer;
+      background: #2b59ff; color: #fff; font-weight: 800;
+    }
+    button.secondary { background: #e7e9f3; color: #111; }
+    button.small { padding: 8px 10px; border-radius: 10px; font-size: 13px; }
+    .pill { padding: 8px 10px; background: #fff; border-radius: 999px; box-shadow: 0 1px 2px rgba(0,0,0,.06); font-size: 13px; }
+    .q{
+      background: #fff; border-radius: 14px; padding: 14px; margin: 10px 0;
+      box-shadow: 0 1px 2px rgba(0,0,0,.06);
+      border: 1px solid rgba(0,0,0,.06);
+    }
+    .q-top{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
+    .q-num{ font-weight:900; font-size:13px; opacity:.75; }
+    .tag{ font-size:12px; padding:4px 8px; border-radius:999px; background:#f0f2ff; color:#2b59ff; font-weight:900; }
+    .prompt{ margin: 8px 0 10px; font-size: 15px; }
+    .opts{ display:grid; gap:8px; margin-top: 8px; }
+    .opt{
+      display:flex; gap:10px; align-items:flex-start;
+      padding:10px 12px; border-radius:12px; border:1px solid #cfd4e6; cursor:pointer;
+      background:#fff;
+    }
+    .opt:hover{ border-color:#2b59ff; box-shadow:0 0 0 3px rgba(43,89,255,.12); }
+    .opt input{ margin-top: 2px; }
+    .opt .txt{ font-size:14px; line-height:1.3; }
+    .actions{ display:flex; gap:10px; align-items:center; margin-top: 10px; flex-wrap: wrap; }
+    .feedback{ margin-top:10px; font-size:13px; }
+    .ok{ color:#0a7a2f; font-weight:900; }
+    .bad{ color:#b00020; font-weight:900; }
+    .warn{ color:#8a5a00; font-weight:900; }
+    .correct{
+      margin-top:6px; padding:8px 10px; border-radius:10px;
+      background:#fff5f6; border:1px solid rgba(176,0,32,.25);
+    }
+    .hint{ font-size:12px; opacity:.75; margin-top:6px; }
+    footer{ padding: 18px 16px; text-align:center; font-size:12px; opacity:.7; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Passive Voice – 50 feleletválasztós feladat</h1>
+  <p>Feladat: válaszd ki a helyes passive (szenvedő) átalakítást. Kérdésenként van <strong>Ellenőrzés</strong> gomb, és hibánál megjelenik a helyes válasz. GitHub Pages-hez: mentsd <strong>index.html</strong>-ként.</p>
+</header>
+
+<main>
+  <div class="toolbar">
+    <button id="checkAll">Ellenőrzés (összes)</button>
+    <button class="secondary" id="resetAll">Újrakezdés</button>
+    <span class="pill" id="score">Pontszám: – / 50</span>
+    <span class="pill" id="percent">Százalék: –%</span>
+  </div>
+
+  <div id="quiz"></div>
+</main>
+
+<footer>Passive Voice gyakorló • MCQ • Egyfájlos HTML</footer>
+
+<script>
+  // Fisher-Yates shuffle
+  function shuffle(arr){
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+  function escapeHtml(s){
+    return (s ?? "").replace(/[&<>"']/g, m => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+    }[m]));
+  }
+
+  // 50 kérdés, mindegyik 4 opcióval; answerIndex a helyes válasz indexe a "choices" tömbben.
+  const items = [
+    {id:1, tag:"Present Simple", prompt:"They clean the classroom every day.", choices:[
+      "The classroom is cleaned every day.",
+      "The classroom was cleaned every day.",
+      "The classroom has been cleaned every day.",
+      "The classroom is being cleaned every day."
+    ], answerIndex:0},
+
+    {id:2, tag:"Present Continuous", prompt:"She is writing a letter.", choices:[
+      "A letter is written.",
+      "A letter is being written.",
+      "A letter was being written.",
+      "A letter has been written."
+    ], answerIndex:1},
+
+    {id:3, tag:"Past Simple", prompt:"The police arrested the suspect.", choices:[
+      "The suspect has been arrested.",
+      "The suspect is arrested.",
+      "The suspect was arrested.",
+      "The suspect was being arrested."
+    ], answerIndex:2},
+
+    {id:4, tag:"Present Perfect", prompt:"They have repaired the car.", choices:[
+      "The car is repaired.",
+      "The car was repaired.",
+      "The car has been repaired.",
+      "The car had been repaired."
+    ], answerIndex:2},
+
+    {id:5, tag:"Past Simple", prompt:"Someone stole my phone.", choices:[
+      "My phone is stolen.",
+      "My phone was stolen.",
+      "My phone has been stolen.",
+      "My phone was being stolen."
+    ], answerIndex:1},
+
+    {id:6, tag:"Future Simple", prompt:"They will organize the party.", choices:[
+      "The party is organized.",
+      "The party will be organized.",
+      "The party is going to be organized.",
+      "The party has been organized."
+    ], answerIndex:1},
+
+    {id:7, tag:"Present Continuous", prompt:"The chef is preparing lunch.", choices:[
+      "Lunch is prepared by the chef.",
+      "Lunch is being prepared (by the chef).",
+      "Lunch was prepared (by the chef).",
+      "Lunch has been prepared (by the chef)."
+    ], answerIndex:1},
+
+    {id:8, tag:"Past Perfect", prompt:"They had finished the work.", choices:[
+      "The work has been finished.",
+      "The work had been finished.",
+      "The work was finished.",
+      "The work will be finished."
+    ], answerIndex:1},
+
+    {id:9, tag:"Modal", prompt:"She must complete the task.", choices:[
+      "The task must be completed.",
+      "The task must completed.",
+      "The task must be complete.",
+      "The task must be completing."
+    ], answerIndex:0},
+
+    {id:10, tag:"Be going to", prompt:"They are going to build a bridge.", choices:[
+      "A bridge will be built.",
+      "A bridge is being built.",
+      "A bridge is going to be built.",
+      "A bridge has been built."
+    ], answerIndex:2},
+
+    {id:11, tag:"Present Simple", prompt:"The company produces smartphones.", choices:[
+      "Smartphones are producing by the company.",
+      "Smartphones are produced (by the company).",
+      "Smartphones were produced (by the company).",
+      "Smartphones have been produced (by the company)."
+    ], answerIndex:1},
+
+    {id:12, tag:"Present Perfect", prompt:"Someone has broken the window.", choices:[
+      "The window is broken.",
+      "The window has been broken.",
+      "The window was broken.",
+      "The window is being broken."
+    ], answerIndex:1},
+
+    {id:13, tag:"Past Continuous", prompt:"They were cleaning the streets.", choices:[
+      "The streets were cleaned.",
+      "The streets were being cleaned.",
+      "The streets have been cleaned.",
+      "The streets are being cleaned."
+    ], answerIndex:1},
+
+    {id:14, tag:"Past Simple", prompt:"She sent the invitation.", choices:[
+      "The invitation was sent.",
+      "The invitation has been sent.",
+      "The invitation is sent.",
+      "The invitation was being sent."
+    ], answerIndex:0},
+
+    {id:15, tag:"Modal", prompt:"They can solve the problem.", choices:[
+      "The problem can be solved.",
+      "The problem can solved.",
+      "The problem can be solving.",
+      "The problem is can be solved."
+    ], answerIndex:0},
+
+    {id:16, tag:"Past Simple", prompt:"The teacher explained the lesson.", choices:[
+      "The lesson was explained.",
+      "The lesson has been explained.",
+      "The lesson is explained.",
+      "The lesson was being explained."
+    ], answerIndex:0},
+
+    {id:17, tag:"Have to", prompt:"They have to follow the instructions.", choices:[
+      "The instructions have to be followed.",
+      "The instructions have to followed.",
+      "The instructions must followed.",
+      "The instructions are to follow."
+    ], answerIndex:0},
+
+    {id:18, tag:"Future Simple", prompt:"Someone will deliver the package.", choices:[
+      "The package will be delivered.",
+      "The package is delivered.",
+      "The package has been delivered.",
+      "The package will delivered."
+    ], answerIndex:0},
+
+    {id:19, tag:"Present Perfect", prompt:"She has written a novel.", choices:[
+      "A novel has been written.",
+      "A novel is being written.",
+      "A novel was written.",
+      "A novel had been written."
+    ], answerIndex:0},
+
+    {id:20, tag:"Used to", prompt:"They used to grow vegetables here.", choices:[
+      "Vegetables used to be grown here.",
+      "Vegetables are used to grow here.",
+      "Vegetables used to grown here.",
+      "Vegetables were used to grow here."
+    ], answerIndex:0},
+
+    {id:21, tag:"Present Continuous", prompt:"The workers are repairing the road.", choices:[
+      "The road is repaired.",
+      "The road is being repaired.",
+      "The road was being repaired.",
+      "The road has been repaired."
+    ], answerIndex:1},
+
+    {id:22, tag:"Past Simple", prompt:"They built the school in 1998.", choices:[
+      "The school was built in 1998.",
+      "The school has been built in 1998.",
+      "The school is built in 1998.",
+      "The school had been built in 1998."
+    ], answerIndex:0},
+
+    {id:23, tag:"Past Continuous", prompt:"She was reading the report.", choices:[
+      "The report was being read.",
+      "The report was read.",
+      "The report is being read.",
+      "The report had been read."
+    ], answerIndex:0},
+
+    {id:24, tag:"Modal", prompt:"They might cancel the meeting.", choices:[
+      "The meeting might be cancelled.",
+      "The meeting might cancelled.",
+      "The meeting is might be cancelled.",
+      "The meeting might be cancelling."
+    ], answerIndex:0},
+
+    {id:25, tag:"Past Perfect", prompt:"Someone had stolen the documents.", choices:[
+      "The documents had been stolen.",
+      "The documents have been stolen.",
+      "The documents were stolen.",
+      "The documents are stolen."
+    ], answerIndex:0},
+
+    {id:26, tag:"Future Simple", prompt:"The manager will sign the contract.", choices:[
+      "The contract will be signed (by the manager).",
+      "The contract is signed (by the manager).",
+      "The contract has been signed (by the manager).",
+      "The contract will signed (by the manager)."
+    ], answerIndex:0},
+
+    {id:27, tag:"Present Continuous", prompt:"They are decorating the hall.", choices:[
+      "The hall is being decorated.",
+      "The hall is decorated.",
+      "The hall was being decorated.",
+      "The hall has been decorated."
+    ], answerIndex:0},
+
+    {id:28, tag:"Present Perfect", prompt:"She has finished the project.", choices:[
+      "The project has been finished.",
+      "The project was finished.",
+      "The project is finished.",
+      "The project is being finished."
+    ], answerIndex:0},
+
+    {id:29, tag:"Past Simple", prompt:"They completed the task yesterday.", choices:[
+      "The task was completed yesterday.",
+      "The task has been completed yesterday.",
+      "The task is completed yesterday.",
+      "The task had been completed yesterday."
+    ], answerIndex:0},
+
+    {id:30, tag:"Present Continuous", prompt:"Someone is watching the baby.", choices:[
+      "The baby is watched.",
+      "The baby is being watched.",
+      "The baby was being watched.",
+      "The baby has been watched."
+    ], answerIndex:1},
+
+    {id:31, tag:"Past Perfect", prompt:"They had prepared the meal.", choices:[
+      "The meal has been prepared.",
+      "The meal had been prepared.",
+      "The meal was being prepared.",
+      "The meal will be prepared."
+    ], answerIndex:1},
+
+    {id:32, tag:"Infinitive", prompt:"She likes people to admire her paintings.", choices:[
+      "She likes her paintings to be admired.",
+      "She likes her paintings to be admire.",
+      "She likes to be admired her paintings.",
+      "She likes admiring her paintings."
+    ], answerIndex:0},
+
+    {id:33, tag:"Infinitive", prompt:"They expect the manager to announce the results.", choices:[
+      "They expect the results to be announced (by the manager).",
+      "They expect the results to announce (by the manager).",
+      "They expect the results are announced (by the manager).",
+      "They expect the results to be announcing (by the manager)."
+    ], answerIndex:0},
+
+    {id:34, tag:"Infinitive", prompt:"He wants someone to help him.", choices:[
+      "He wants to be helped.",
+      "He wants to be help.",
+      "He wants being helped.",
+      "He wants help him."
+    ], answerIndex:0},
+
+    {id:35, tag:"Past Continuous", prompt:"They were building a new road.", choices:[
+      "A new road was being built.",
+      "A new road was built.",
+      "A new road is being built.",
+      "A new road had been built."
+    ], answerIndex:0},
+
+    {id:36, tag:"Question PS", prompt:"Do they clean the office every day?", choices:[
+      "Is the office cleaned every day?",
+      "Was the office cleaned every day?",
+      "Has the office been cleaned every day?",
+      "Is the office being cleaned every day?"
+    ], answerIndex:0},
+
+    {id:37, tag:"Question PC", prompt:"Is she writing the report?", choices:[
+      "Is the report written?",
+      "Is the report being written?",
+      "Was the report being written?",
+      "Has the report been written?"
+    ], answerIndex:1},
+
+    {id:38, tag:"Question Past", prompt:"Did they finish the project?", choices:[
+      "Has the project been finished?",
+      "Was the project finished?",
+      "Had the project been finished?",
+      "Is the project finished?"
+    ], answerIndex:1},
+
+    {id:39, tag:"Question PP", prompt:"Have they repaired the car?", choices:[
+      "Has the car repaired?",
+      "Has the car been repaired?",
+      "Was the car repaired?",
+      "Is the car being repaired?"
+    ], answerIndex:1},
+
+    {id:40, tag:"Question Future", prompt:"Will they organize the event?", choices:[
+      "Will the event be organized?",
+      "Is the event being organized?",
+      "Has the event been organized?",
+      "Was the event organized?"
+    ], answerIndex:0},
+
+    {id:41, tag:"Question PastCont", prompt:"Was she reading the letter?", choices:[
+      "Was the letter read?",
+      "Was the letter being read?",
+      "Has the letter been read?",
+      "Is the letter being read?"
+    ], answerIndex:1},
+
+    {id:42, tag:"Question PastPerf", prompt:"Had they completed the task?", choices:[
+      "Had the task completed?",
+      "Had the task been completed?",
+      "Was the task completed?",
+      "Has the task been completed?"
+    ], answerIndex:1},
+
+    {id:43, tag:"Question Modal", prompt:"Can they solve the problem?", choices:[
+      "Can the problem be solved?",
+      "Can the problem solved?",
+      "Is the problem can be solved?",
+      "Can be the problem solved?"
+    ], answerIndex:0},
+
+    {id:44, tag:"Question Modal", prompt:"Must she finish the report?", choices:[
+      "Must the report be finished?",
+      "Must the report finished?",
+      "Must be the report finished?",
+      "The report must finished?"
+    ], answerIndex:0},
+
+    {id:45, tag:"Question GoingTo", prompt:"Are they going to build a bridge?", choices:[
+      "Is a bridge going to be built?",
+      "Will a bridge be built?",
+      "Is a bridge being built?",
+      "Has a bridge been built?"
+    ], answerIndex:0},
+
+    {id:46, tag:"Question Past", prompt:"Did someone break the window?", choices:[
+      "Was the window broken?",
+      "Has the window been broken?",
+      "Is the window broken?",
+      "Was the window being broken?"
+    ], answerIndex:0},
+
+    {id:47, tag:"Question PP", prompt:"Has she written the email?", choices:[
+      "Has the email been written?",
+      "Was the email written?",
+      "Is the email written?",
+      "Has the email written?"
+    ], answerIndex:0},
+
+    {id:48, tag:"Question PastCont", prompt:"Were they painting the house?", choices:[
+      "Was the house painted?",
+      "Was the house being painted?",
+      "Has the house been painted?",
+      "Is the house being painted?"
+    ], answerIndex:1},
+
+    {id:49, tag:"Question Future", prompt:"Will the manager sign the contract?", choices:[
+      "Will the contract be signed (by the manager)?",
+      "Is the contract signed (by the manager)?",
+      "Has the contract been signed (by the manager)?",
+      "Will the contract signed (by the manager)?"
+    ], answerIndex:0},
+
+    {id:50, tag:"Question PS", prompt:"Do people speak English here?", choices:[
+      "Is English spoken here?",
+      "Was English spoken here?",
+      "Has English been spoken here?",
+      "Is English being spoken here?"
+    ], answerIndex:0},
+  ];
+
+  function render(){
+    const root = document.getElementById("quiz");
+    root.innerHTML = "";
+
+    for (const it of items){
+      const card = document.createElement("div");
+      card.className = "q";
+      card.dataset.id = it.id;
+
+      // randomize choice order per question
+      const shuffled = shuffle(it.choices.map((text, idx) => ({ text, idx })));
+      card.dataset.order = JSON.stringify(shuffled.map(o => o.idx));
+
+      const name = "q" + it.id;
+
+      card.innerHTML = `
+        <div class="q-top">
+          <div class="q-num">#${it.id}</div>
+          <div class="tag">${escapeHtml(it.tag)}</div>
+        </div>
+        <div class="prompt"><strong>Alapmondat:</strong> ${escapeHtml(it.prompt)}</div>
+        <div class="opts">
+          ${shuffled.map((o, k) => `
+            <label class="opt">
+              <input type="radio" name="${name}" value="${k}" />
+              <div class="txt">${escapeHtml(o.text)}</div>
+            </label>
+          `).join("")}
+        </div>
+        <div class="actions">
+          <button class="secondary small checkOne" type="button">Ellenőrzés</button>
+          <button class="secondary small resetOne" type="button">Törlés</button>
+        </div>
+        <div class="feedback" aria-live="polite"></div>
+        <div class="hint">A kérdés csak akkor számít bele a pontszámba, ha ellenőrizted.</div>
+      `;
+      root.appendChild(card);
+    }
+
+    // Per-question buttons
+    root.querySelectorAll(".checkOne").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const card = btn.closest(".q");
+        checkCard(card);
+        updateScore();
+      });
+    });
+    root.querySelectorAll(".resetOne").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const card = btn.closest(".q");
+        resetCard(card);
+        updateScore();
+      });
+    });
+
+    updateScore();
+  }
+
+  function resetCard(card){
+    card.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+    card.querySelector(".feedback").innerHTML = "";
+    delete card.dataset.correct;
+  }
+
+  function checkCard(card){
+    const id = Number(card.dataset.id);
+    const it = items.find(x => x.id === id);
+    const fb = card.querySelector(".feedback");
+
+    const selected = card.querySelector('input[type="radio"]:checked');
+    if (!selected){
+      fb.innerHTML = `<div class="warn">⚠️ Előbb válassz egy opciót.</div>`;
+      delete card.dataset.correct;
+      return;
+    }
+
+    const order = JSON.parse(card.dataset.order);
+    const chosenShuffledIndex = Number(selected.value);
+    const chosenOriginalIndex = order[chosenShuffledIndex];
+
+    const ok = chosenOriginalIndex === it.answerIndex;
+
+    if (ok){
+      fb.innerHTML = `<div class="ok">✅ Helyes!</div>`;
+      card.dataset.correct = "1";
+    } else {
+      const correctText = it.choices[it.answerIndex];
+      fb.innerHTML = `
+        <div class="bad">❌ Nem jó.</div>
+        <div class="correct"><strong>Helyes válasz:</strong> ${escapeHtml(correctText)}</div>
+      `;
+      card.dataset.correct = "0";
+    }
+  }
+
+  function updateScore(){
+    const cards = [...document.querySelectorAll(".q")];
+    let checked = 0, correct = 0;
+
+    for (const c of cards){
+      if (c.dataset.correct !== undefined){
+        checked++;
+        if (c.dataset.correct === "1") correct++;
+      }
+    }
+
+    const total = items.length;
+    const percent = Math.round((correct / total) * 100);
+
+    document.getElementById("score").textContent =
+      `Pontszám: ${correct} / ${total}` + (checked ? ` (ellenőrzött: ${checked})` : "");
+
+    document.getElementById("percent").textContent =
+      `Százalék: ${isNaN(percent) ? "–" : percent + "%"}`;
+  }
+
+  document.getElementById("checkAll").addEventListener("click", () => {
+    document.querySelectorAll(".q").forEach(card => checkCard(card));
+    updateScore();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  document.getElementById("resetAll").addEventListener("click", () => {
+    document.querySelectorAll(".q").forEach(card => resetCard(card));
+    updateScore();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  render();
+</script>
+</body>
+</html>
